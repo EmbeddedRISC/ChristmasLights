@@ -1,0 +1,12 @@
+.vscode/
+
+secrets.h
+
+# Arduino Commons
+libraries/*/
+!libraries/MoistureSensorCommon/
+
+# KiCad
+*-backups/
+Gerbers/
+
