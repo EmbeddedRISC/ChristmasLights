@@ -1,0 +1,4 @@
+[submodule "libraries/SmartLED"]
+	path = libraries/SmartLED
+	url = https://github.com/EmbeddedRISC/SmartLED
+	branch = v1.0.x

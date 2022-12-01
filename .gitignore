@@ -4,7 +4,8 @@ secrets.h
 
 # Arduino Commons
 libraries/*/
-!libraries/MoistureSensorCommon/
+!libraries/SmartLED/
+!libraries/XMasComms/
 
 # KiCad
 *-backups/
