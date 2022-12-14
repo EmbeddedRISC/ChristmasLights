@@ -1,0 +1,13 @@
+.vscode/
+
+secrets.h
+
+# Arduino Commons
+libraries/*/
+!libraries/SmartLED/
+!libraries/XMasComms/
+
+# KiCad
+*-backups/
+Gerbers/
+
