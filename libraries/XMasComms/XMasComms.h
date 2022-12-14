@@ -16,92 +16,89 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  ***************************************************************************/
 
-
 #include <stdint.h>
+#include <stdlib.h>
+
+#include <RHGenericDriver.h>
+
 #include "FastLED.h"
+
+#include "SmartLED.h"
+
+/////////////////////////////////////////////////////////////
+// Debug Setup
+/////////////////////////////////////////////////////////////
+
+#define SERIAL_DEBUG
+
+#ifdef SERIAL_DEBUG
+  #define XMAS_DEBUG_PRINT(x) Serial.print(x);
+  #define XMAS_DEBUG_PRINT_HEX(x) {Serial.print("0x"); Serial.print(x, HEX);}
+  #define XMAS_DEBUG_PRINTLN(x) Serial.println(x);
+#else
+  #define XMAS_DEBUG_PRINT(x)
+  #define XMAS_DEBUG_PRINT_HEX(x)
+  #define XMAS_DEBUG_PRINTLN(x)
+#endif
+
+///////////////////////////////////////////////////
+// Definitions
+///////////////////////////////////////////////////
+#define DEFAULT_LORA_FREQ        ((float) 915.0)
+#define DEFAULT_LORA_CAD_TIMEOUT 10000
+
+#define MAX_PACKET_DATA 100
 
 #define DEFAULT_TRANSITION_TIME 500
 #define DEFAULT_BRIGHTNESS      255
 #define DEFAULT_LED_STATE       true
 #define DEFAULT_COLOR1          CRGB::Red
 #define DEFAULT_COLOR2          CRGB::Green
-#define DEFAULT_STYLE           XMasComms::SIMPLE
+#define DEFAULT_STYLE           SIMPLE
 #define DEFAULT_EFFECT_RATE     20
+
+///////////////////////////////////////////////////
+// Header File
+///////////////////////////////////////////////////
 
 #ifndef __XMAS_COMMS_H__
 #define __XMAS_COMMS_H__
 
-namespace XMasComms {
+///////////////////////////////////////////////////
+// Types
+///////////////////////////////////////////////////
 
-  const int SLAVE_I2C_ADDR = 42;
+typedef uint8_t crc_t;
 
-  // LED Styles
-  const char* LED_STYLES = "off;simple;twinkle;fade_between";
-
-  enum LEDStyles : uint8_t {
-    OFF          = 0,
-    SIMPLE       = 1,
-    TWINKLE      = 2,
-    FADE_BETWEEN = 3
-  };
-
-  // Field Definitions
-  enum XMasControllerField : uint8_t {
-    TRANSITION_TIME    = 0,
-    GARAGE_COLOR1      = 1,
-    GARAGE_COLOR2      = 2,
-    GARAGE_STYLE       = 3,
-    GARAGE_EFFECT_RATE = 4,
-    DOOR_COLOR1        = 5,
-    DOOR_COLOR2        = 6,
-    DOOR_STYLE         = 7,
-    DOOR_EFFECT_RATE   = 8,
-    ROOF_COLOR1        = 9,
-    ROOF_COLOR2        = 10,
-    ROOF_STYLE         = 11,
-    ROOF_EFFECT_RATE   = 12
-  };
-
-  struct TransitionTime {
-    unsigned short time;
-  };
-
-  struct Color {
-    CRGB    rgb;
-    uint8_t brightness;
-    bool    state;
-  };
-
-  struct Style {
-    LEDStyles style;
-  };
-
-  struct EffectRate {
-    unsigned short rate;
-  };
-
-  // Packet formats
-  union TransitionTimePacket {
-    TransitionTime data;
-    uint8_t        buf[sizeof(TransitionTime)];
-  };
-
-  union ColorPacket {
-    Color   data;
-    uint8_t buf[sizeof(Color)];
-  };
-
-  union StylePacket {
-    Style   data;
-    uint8_t buf[sizeof(Style)];
-  };
-
-  union EffectRatePacket {
-    EffectRate data;
-    uint8_t    buf[sizeof(EffectRate)];
-  };
+struct __attribute__((packed)) XMasData {
+  CRGB color1;
+  CRGB color2;
+  short effect_rate;
+  short transition_time;
+  AnimationType animation;
 };
 
+struct __attribute__((packed)) XMasPacket {
+  XMasData data;
+  crc_t crc;
+};
+
+typedef XMasData LedInfo;
+
+///////////////////////////////////////////////////
+// Helper Functions
+///////////////////////////////////////////////////
+
+void print_packet(XMasPacket *pkt);
+
+// Packet CRC Calculation
+const uint8_t crc_poly = 0b100011011;
+crc_t xmas_crc8(const uint8_t* data, size_t length);
+
+// Send packet
+bool send_packet(RHGenericDriver &driver, XMasPacket *pkt);
+
+// Recieve Packet
+bool recv_packet(RHGenericDriver &driver, XMasPacket *pkt);
+
 #endif
-
-
